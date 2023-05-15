@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: VPC FOR TCS
+Resources:
+  TCSVPC: #VPC 
+    Type: "AWS::EC2::VPC"
+    Properties: 
+      CidrBlock: 192.168.0.0/20
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Name
+          Value: TCS-VPC
+
+  TCSIGW: #IGW
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: TCS-IGW
+
+  TCSAttachGateway: #IGW-ATTACH
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId:
+        Ref: TCSVPC
+      InternetGatewayId:
+        Ref: TCSIGW
+
+  IMBPUBSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: TCSVPC
+      CidrBlock: 192.168.5.0/24
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: TCS-PUB-SUBNET
+
+  IMBPRISubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: TCSVPC
+      CidrBlock: 192.168.6.0/24
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: TCS-PRIVATE-SUBNET
+
+  TCSPUBRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: TCSVPC
+      Tags:
+        - Key: Name
+          Value: TCS-PUB-ROUTETABLE
+
+  TCSPRIVRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: TCSVPC
+      Tags:
+        - Key: Name
+          Value: TCS-PRIVATE-ROUTETABLE
+
+  TCSPUBSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: IMBPUBSubnet
+      RouteTableId:
+        Ref: TCSPUBRouteTable
+
+  TCSPRISubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: IMBPRISubnet
+      RouteTableId:
+        Ref: TCSPRIVRouteTable
+
+  TCSPUBRoute:
+    Type: AWS::EC2::Route
+    DependsOn: TCSAttachGateway
+    Properties:
+       RouteTableId:
+         Ref: TCSPUBRouteTable
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: TCSIGW 
+         

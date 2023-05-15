@@ -1,0 +1,23 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: VPC FOR IBM
+Resources:
+  MyEC2Instance: #An inline comment
+    Type: "AWS::EC2::VPC"
+    Properties: 
+      # ImageId: "ami-0889a44b331db0194" #Another comment -- This is a Linux AMI
+      # InstanceType: t2.micro
+      # KeyName: ansiblekey
+      # BlockDeviceMappings:
+      CidrBlock: 10.0.0.0/16
+    EnableDnsSupport: 'true'
+    EnableDnsHostnames: 'true'
+    Tags:
+     - Key: Name
+       Value: IBM-VPC
+        # -
+        #   DeviceName: /dev/sdm
+        #   Ebs:
+        #     VolumeType: io1
+        #     Iops: 200
+        #     DeleteOnTermination: false
+        #     VolumeSize: 20

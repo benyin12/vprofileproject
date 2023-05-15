@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Resources:
+  IamS3Role:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: iam-cicd-data-s3
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Path: /
+      Policies:
+        - PolicyName: iams3fullaccess
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action: '*'
+                Resource: 'arn:aws:s3:::*'
+  IamInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: iam-cicd-data-s3
+      Path: /
+      Roles:
+        - !Ref IamS3Role
+  Outputs:
+    IamS3RoleDetails:
+      Description: VP CICD Pro s3 role info
+      Value: !Ref IamInstanceProfile
+      Export:
+        Name: Cicds3role-VPS3RoleProfileName

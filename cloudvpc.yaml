@@ -1,0 +1,96 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: VPC FOR IBM
+Resources:
+  IBMVPC: #VPC 
+    Type: "AWS::EC2::VPC"
+    Properties: 
+      CidrBlock: 10.0.0.0/20
+      EnableDnsSupport: 'true'
+      EnableDnsHostnames: 'true'
+      Tags:
+        - Key: Name
+          Value: IBM-VPC
+
+  IBMIGW: #IGW
+    Type: "AWS::EC2::InternetGateway"
+    Properties:
+      Tags:
+        - Key: Name
+          Value: IBM-IGW
+
+  IBMAttachGateway: #IGW-ATTACH
+    Type: "AWS::EC2::VPCGatewayAttachment"
+    Properties:
+      VpcId:
+        Ref: IBMVPC
+      InternetGatewayId:
+        Ref: IBMIGW
+
+  IMBPUBSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: IBMVPC
+      CidrBlock: 10.0.5.0/24
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: 'true'
+      Tags:
+        - Key: Name
+          Value: IBM-PUB-SUBNET
+
+  IMBPRISubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId:
+        Ref: IBMVPC
+      CidrBlock: 10.0.6.0/24
+      AvailabilityZone: "us-east-1a"
+      MapPublicIpOnLaunch: 'false'
+      Tags:
+        - Key: Name
+          Value: IBM-PRIVATE-SUBNET
+
+  IBMPUBRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: IBMVPC
+      Tags:
+        - Key: Name
+          Value: IBM-PUB-ROUTETABLE
+
+  IBMPRIVRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId:  
+        Ref: IBMVPC
+      Tags:
+        - Key: Name
+          Value: IBM-PRIVATE-ROUTETABLE
+
+  IBMPUBSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: IMBPUBSubnet
+      RouteTableId:
+        Ref: IBMPUBRouteTable
+
+  IBMPRISubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId:
+        Ref: IMBPRISubnet
+      RouteTableId:
+        Ref: IBMPRIVRouteTable
+
+  IBMPUBRoute:
+    Type: AWS::EC2::Route
+    DependsOn: IBMAttachGateway
+    Properties:
+       RouteTableId:
+         Ref: IBMPUBRouteTable
+       DestinationCidrBlock: 0.0.0.0/0
+       GatewayId:
+         Ref: IBMIGW 
+         
